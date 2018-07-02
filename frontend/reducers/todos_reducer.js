@@ -26,13 +26,15 @@ const todosReducer = (state = initialState, action) => {
       const newState = merge({}, state);
       const copy = merge(newState, {[todo.id]: todo});
       return copy;
+
     case RECEIVE_TODOS:
-      Object.freeze(state);
       const { todos } = action;
       const newTodos = {};
+
       todos.forEach((todo) => {
         newTodos[todo.id] = todo;
       });
+
       return newTodos;
     default:
       return state;
