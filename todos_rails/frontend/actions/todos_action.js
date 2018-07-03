@@ -50,3 +50,15 @@ export const createTodo = (todo) => {
     );
   };
 };
+
+export const updateTodo = (todo) => {
+  return dispatch => {
+    return ApiUtil.updateTodo(todo).then(
+      updatedTodo => {
+        dispatch(clearErrors());
+        dispatch(receiveTodo(updatedTodo));
+      },
+      err => { dispatch(receiveErrors(err.responseJSON));}
+    );
+  };
+};

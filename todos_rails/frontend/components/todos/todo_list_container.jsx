@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
-import { receiveTodo, receiveTodos, fetchTodos, createTodo, removeTodo } from '../../actions/todos_action';
+import { receiveTodo, receiveTodos, fetchTodos, createTodo, removeTodo, updateTodo } from '../../actions/todos_action';
 import { receiveErrors, clearErrors } from '../../actions/error_actions';
 import { allTodos, allErrors } from '../../reducers/selectors';
 import TodoList from './todo-list';
@@ -18,7 +18,8 @@ const mapDispatchToProps = dispatch => {
     // receiveTodo: (todo) => {dispatch(receiveTodo(todo));},
     fetchTodos: () => {dispatch(fetchTodos());},
     createTodo: (todo) => {dispatch(createTodo(todo));},
-    removeTodo: (todo) => {dispatch(removeTodo(todo));}
+    removeTodo: (todo) => {dispatch(removeTodo(todo));},
+    updateTodo: (todo) => {dispatch(updateTodo(todo));}
   };
 };
 

@@ -40165,7 +40165,7 @@ var clearErrors = exports.clearErrors = function clearErrors() {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.createTodo = exports.removeTodo = exports.fetchTodos = exports.receiveTodo = exports.receiveTodos = exports.REMOVE_TODO = exports.RECEIVE_TODO = exports.RECEIVE_TODOS = undefined;
+exports.updateTodo = exports.createTodo = exports.removeTodo = exports.fetchTodos = exports.receiveTodo = exports.receiveTodos = exports.REMOVE_TODO = exports.RECEIVE_TODO = exports.RECEIVE_TODOS = undefined;
 
 var _todo_api_util = __webpack_require__(/*! ../util/todo_api_util */ "./frontend/util/todo_api_util.js");
 
@@ -40218,6 +40218,17 @@ var createTodo = exports.createTodo = function createTodo(todo) {
       dispatch(receiveTodo(todo));
     }, function (err) {
       return dispatch((0, _error_actions.receiveErrors)(err.responseJSON));
+    });
+  };
+};
+
+var updateTodo = exports.updateTodo = function updateTodo(todo) {
+  return function (dispatch) {
+    return ApiUtil.updateTodo(todo).then(function (updatedTodo) {
+      dispatch((0, _error_actions.clearErrors)());
+      dispatch(receiveTodo(updatedTodo));
+    }, function (err) {
+      dispatch((0, _error_actions.receiveErrors)(err.responseJSON));
     });
   };
 };
@@ -40364,7 +40375,7 @@ var TodoList = function (_React$Component) {
 
       var todos = this.props.todos;
       var todoItems = todos.map(function (todo) {
-        return _react2.default.createElement(_todo_list_item2.default, { key: todo.id, removeTodo: _this2.props.removeTodo, todo: todo });
+        return _react2.default.createElement(_todo_list_item2.default, { key: todo.id, updateTodo: _this2.props.updateTodo, removeTodo: _this2.props.removeTodo, todo: todo });
       });
       return _react2.default.createElement(
         'section',
@@ -40564,6 +40575,9 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
     },
     removeTodo: function removeTodo(todo) {
       dispatch((0, _todos_action.removeTodo)(todo));
+    },
+    updateTodo: function updateTodo(todo) {
+      dispatch((0, _todos_action.updateTodo)(todo));
     }
   };
 };
@@ -40594,15 +40608,23 @@ var _reactDom = __webpack_require__(/*! react-dom */ "../node_modules/react-dom/
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
+var _lodash = __webpack_require__(/*! lodash */ "../node_modules/lodash/lodash.js");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = function (props) {
 
-  var handleClick = function handleClick() {
-    return function (e) {
-
-      props.removeTodo(props.todo);
-    };
+  var handleClick = function handleClick(type) {
+    if (type === 'delete') {
+      return function (e) {
+        props.removeTodo(props.todo);
+      };
+    } else {
+      var updatedTodo = (0, _lodash.merge)({}, props.todo, { done: !props.todo.done });
+      return function (e) {
+        props.updateTodo(updatedTodo);
+      };
+    }
   };
 
   return _react2.default.createElement(
@@ -40611,8 +40633,13 @@ exports.default = function (props) {
     props.todo.title,
     _react2.default.createElement(
       'button',
-      { onClick: handleClick() },
+      { onClick: handleClick('delete') },
       'Delete Todo'
+    ),
+    _react2.default.createElement(
+      'button',
+      { onClick: handleClick('update') },
+      props.done ? 'Undo' : 'Done'
     )
   );
 };
@@ -40925,9 +40952,7 @@ var createTodo = exports.createTodo = function createTodo(todo) {
   return $.ajax({
     url: "/api/todos",
     method: "POST",
-    data: {
-      todo: todo
-    }
+    data: { todo: todo }
   });
 };
 
@@ -40935,6 +40960,14 @@ var removeTodo = exports.removeTodo = function removeTodo(todo) {
   return $.ajax({
     url: "/api/todos/" + todo.id,
     method: "DELETE"
+  });
+};
+
+var updateTodo = exports.updateTodo = function updateTodo(todo) {
+  return $.ajax({
+    url: "/api/todos/" + todo.id,
+    method: "PATCH",
+    data: { todo: todo }
   });
 };
 
