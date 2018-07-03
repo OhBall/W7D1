@@ -7,10 +7,12 @@ const errorReducer = (state = [], action) => {
   switch (action.type) {
     case RECEIVE_ERRORS:
       const { errors } = action;
-      return newState.concat(errors);
+      return errors;
     case CLEAR_ERRORS:
       return [];
     default:
       return state;
   }
 };
+
+export default errorReducer;

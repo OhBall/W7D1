@@ -37,10 +37,8 @@ const todosReducer = (state = initialState, action) => {
 
       return newTodos;
     case REMOVE_TODO:
-      const filteredState = newState.todos.filter( (todo) =>
-        todo.id != action.todo.id
-      );
-      return filteredState;
+      delete newState[action.todo.id];
+      return newState;
     default:
       return state;
   }

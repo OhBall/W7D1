@@ -40165,11 +40165,13 @@ var clearErrors = exports.clearErrors = function clearErrors() {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.createTodo = exports.fetchTodos = exports.removeTodo = exports.receiveTodo = exports.receiveTodos = exports.REMOVE_TODO = exports.RECEIVE_TODO = exports.RECEIVE_TODOS = undefined;
+exports.createTodo = exports.removeTodo = exports.fetchTodos = exports.receiveTodo = exports.receiveTodos = exports.REMOVE_TODO = exports.RECEIVE_TODO = exports.RECEIVE_TODOS = undefined;
 
 var _todo_api_util = __webpack_require__(/*! ../util/todo_api_util */ "./frontend/util/todo_api_util.js");
 
 var ApiUtil = _interopRequireWildcard(_todo_api_util);
+
+var _error_actions = __webpack_require__(/*! ./error_actions */ "./frontend/actions/error_actions.js");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -40191,13 +40193,6 @@ var receiveTodo = exports.receiveTodo = function receiveTodo(todo) {
   };
 };
 
-var removeTodo = exports.removeTodo = function removeTodo(todo) {
-  return {
-    type: REMOVE_TODO,
-    todo: todo
-  };
-};
-
 var fetchTodos = exports.fetchTodos = function fetchTodos() {
   return function (dispatch) {
     return ApiUtil.fetchTodos().then(function (todos) {
@@ -40206,13 +40201,23 @@ var fetchTodos = exports.fetchTodos = function fetchTodos() {
   };
 };
 
-var createTodo = exports.createTodo = function createTodo(todo) {
+var removeTodo = exports.removeTodo = function removeTodo(todo) {
   return function (dispatch) {
-    debugger;
+    return ApiUtil.removeTodo(todo).then(function (todos) {
+      dispatch(receiveTodos(todos));
+    });
+  };
+};
+
+var createTodo = exports.createTodo = function createTodo(todo) {
+
+  return function (dispatch) {
+
     return ApiUtil.createTodo(todo).then(function (todo) {
-      return dispatch(receiveTodo(todo));
+      dispatch((0, _error_actions.clearErrors)());
+      dispatch(receiveTodo(todo));
     }, function (err) {
-      return dispatch(receiveErrors(err.responseJSON));
+      return dispatch((0, _error_actions.receiveErrors)(err.responseJSON));
     });
   };
 };
@@ -40355,9 +40360,11 @@ var TodoList = function (_React$Component) {
   }, {
     key: 'render',
     value: function render() {
+      var _this2 = this;
+
       var todos = this.props.todos;
       var todoItems = todos.map(function (todo) {
-        return _react2.default.createElement(_todo_list_item2.default, { key: todo.id, todo: todo });
+        return _react2.default.createElement(_todo_list_item2.default, { key: todo.id, removeTodo: _this2.props.removeTodo, todo: todo });
       });
       return _react2.default.createElement(
         'section',
@@ -40367,7 +40374,7 @@ var TodoList = function (_React$Component) {
           null,
           todoItems
         ),
-        _react2.default.createElement(_todo_form2.default, { createTodo: this.props.createTodo })
+        _react2.default.createElement(_todo_form2.default, { errors: this.props.errors, createTodo: this.props.createTodo })
       );
     }
   }]);
@@ -40461,9 +40468,24 @@ var TodoForm = function (_React$Component) {
   }, {
     key: 'render',
     value: function render() {
+
+      var list = [];
+      this.props.errors.forEach(function (error, idx) {
+        list.push(_react2.default.createElement(
+          'li',
+          { key: idx },
+          error
+        ));
+      });
+
       return _react2.default.createElement(
         'form',
         { onSubmit: this.submit },
+        _react2.default.createElement(
+          'ul',
+          null,
+          list
+        ),
         _react2.default.createElement(
           'label',
           { htmlFor: 'title' },
@@ -40514,6 +40536,8 @@ var _reactRedux = __webpack_require__(/*! react-redux */ "../node_modules/react-
 
 var _todos_action = __webpack_require__(/*! ../../actions/todos_action */ "./frontend/actions/todos_action.js");
 
+var _error_actions = __webpack_require__(/*! ../../actions/error_actions */ "./frontend/actions/error_actions.js");
+
 var _selectors = __webpack_require__(/*! ../../reducers/selectors */ "./frontend/reducers/selectors.js");
 
 var _todoList = __webpack_require__(/*! ./todo-list */ "./frontend/components/todos/todo-list.jsx");
@@ -40524,7 +40548,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var mapStateToProps = function mapStateToProps(state) {
   return {
-    todos: (0, _selectors.allTodos)(state)
+    todos: (0, _selectors.allTodos)(state),
+    errors: (0, _selectors.allErrors)(state)
   };
 };
 
@@ -40536,6 +40561,9 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
     },
     createTodo: function createTodo(todo) {
       dispatch((0, _todos_action.createTodo)(todo));
+    },
+    removeTodo: function removeTodo(todo) {
+      dispatch((0, _todos_action.removeTodo)(todo));
     }
   };
 };
@@ -40569,10 +40597,23 @@ var _reactDom2 = _interopRequireDefault(_reactDom);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = function (props) {
+
+  var handleClick = function handleClick() {
+    return function (e) {
+
+      props.removeTodo(props.todo);
+    };
+  };
+
   return _react2.default.createElement(
     'li',
     null,
-    props.todo.title
+    props.todo.title,
+    _react2.default.createElement(
+      'button',
+      { onClick: handleClick() },
+      'Delete Todo'
+    )
   );
 };
 
@@ -40618,6 +40659,10 @@ exports.default = thunk;
 "use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
 var _lodash = __webpack_require__(/*! lodash */ "../node_modules/lodash/lodash.js");
 
 var _error_actions = __webpack_require__(/*! ../actions/error_actions */ "./frontend/actions/error_actions.js");
@@ -40632,13 +40677,15 @@ var errorReducer = function errorReducer() {
     case _error_actions.RECEIVE_ERRORS:
       var errors = action.errors;
 
-      return newState.concat(errors);
+      return errors;
     case _error_actions.CLEAR_ERRORS:
       return [];
     default:
       return state;
   }
 };
+
+exports.default = errorReducer;
 
 /***/ }),
 
@@ -40691,6 +40738,10 @@ var allTodos = exports.allTodos = function allTodos(state) {
     return state.todos[key];
   });
   return todos;
+};
+
+var allErrors = exports.allErrors = function allErrors(state) {
+  return state.errors;
 };
 
 /***/ }),
@@ -40755,10 +40806,8 @@ var todosReducer = function todosReducer() {
 
       return newTodos;
     case _todos_action.REMOVE_TODO:
-      var filteredState = newState.todos.filter(function (todo) {
-        return todo.id != action.todo.id;
-      });
-      return filteredState;
+      delete newState[action.todo.id];
+      return newState;
     default:
       return state;
   }
@@ -40879,6 +40928,13 @@ var createTodo = exports.createTodo = function createTodo(todo) {
     data: {
       todo: todo
     }
+  });
+};
+
+var removeTodo = exports.removeTodo = function removeTodo(todo) {
+  return $.ajax({
+    url: "/api/todos/" + todo.id,
+    method: "DELETE"
   });
 };
 

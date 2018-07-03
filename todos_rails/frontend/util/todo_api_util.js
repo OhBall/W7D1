@@ -14,3 +14,10 @@ export const createTodo = (todo) => {
     }
   });
 };
+
+export const removeTodo = (todo) => {
+  return $.ajax({
+    url:`/api/todos/${todo.id}`,
+    method: "DELETE"
+  });
+};

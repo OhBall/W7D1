@@ -33,8 +33,18 @@ class TodoForm extends React.Component {
   }
 
   render () {
+
+      const list = [];
+      this.props.errors.forEach( (error, idx) => {
+        list.push(<li key={idx}>{error}</li>);
+      });
+
+
     return (
       <form onSubmit={this.submit}>
+        <ul>
+          {list}
+        </ul>
         <label htmlFor="title">Title</label>
         <input id="title" type="text" onChange={this.update("title")} value={this.state.title}></input>
         <label htmlFor="body">Body</label>

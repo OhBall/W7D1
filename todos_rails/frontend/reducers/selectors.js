@@ -6,3 +6,7 @@ export const allTodos = (state) => {
   });
   return todos;
 };
+
+export const allErrors = (state) => {
+  return state.errors;
+};
